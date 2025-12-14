@@ -1,0 +1,52 @@
+/* Saytning umumiy stilizatsiyasi (sodda ko'rinish) */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header, main {
+    padding: 20px;
+    text-align: center;
+}
+
+/* Bot xabari joylashuvi va stilizatsiyasi */
+#bot-message {
+    /* Ekranning pastki chap burchagiga mahkamlash */
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    
+    /* Tashqi ko'rinishi */
+    background-color: #2c3e50; /* To'q ko'k (bot rangiga o'xshash) */
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    max-width: 250px;
+    z-index: 1000; /* Boshqa elementlardan ustun turishi uchun */
+    
+    /* Xabarning yo'qolishi/paydo bo'lishiga animatsiya qo'shish */
+    transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+}
+
+/* Yashirinish holati (CSS orqali boshqariladi)
+    Dastlabki holat shu.
+*/
+#bot-message.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/*
+    Ko'rinish holati (JavaScript orqali "hidden" klassi olib tashlanadi)
+*/
+#bot-message:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}

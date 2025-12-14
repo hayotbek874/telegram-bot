@@ -1,0 +1,19 @@
+{
+  "name": "bot-test-sayt",
+  "version": "1.0.0",
+  "description": "Node.js Bot Test Sayt",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "node",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.22.1",
+    "node-telegram-bot-api": "^0.67.0"
+  }
+}
