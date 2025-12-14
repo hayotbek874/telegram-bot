@@ -1,64 +1,66 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const bodyParser = require('body-parser');
+const http = require('http'); // HTTP serverni ulash
+const socketIo = require('socket.io'); // Socket.io ni ulash
+const path = require('path');
 
 // 1. O'zgarmas Ma'lumotlar
 const token = '8311436800:AAEjLwVJZjZ5_hpPr6CQHovx6abEOThRA-I'; 
-const publicUrl = 'https://telegram-bot-db2l.onrender.com';
+// Keyingi deployda Render o'zi URL beradi. Hozircha bu bizning asosiy domenimiz.
+const publicUrl = 'https://telegram-bot-db2l.onrender.com'; 
 const port = process.env.PORT || 3000;
-
-// WebHook uchun maxfiy manzil (Domen Kaliti)
-const webHookUrl = `${publicUrl}/${token}`;
+const webHookPath = `/${token}`;
 
 // 2. Server Sozlamalari
 const app = express();
-app.use(bodyParser.json()); // Telegramdan kelgan JSON so'rovlarni tahlil qilish
+const server = http.createServer(app); // Express ilovasidan HTTP server yaratish
+const io = socketIo(server); // Socket.io ni HTTP serverga ulash
+
+app.use(bodyParser.json()); 
+// index.html va boshqa statik fayllarni (masalan, CSS/JS) taqdim etish
+app.use(express.static(path.join(__dirname, 'public'))); 
 
 // 3. Botni WebHook rejimida ishga tushirish
 const bot = new TelegramBot(token); 
-
-// Pollingni to'xtatish va WebHookni o'rnatish
-bot.setWebHook(webHookUrl)
-    .then(() => {
-        console.log(`WebHook muvaffaqiyatli o'rnatildi: ${webHookUrl}`);
-    })
-    .catch(err => {
-        console.error("WebHook o'rnatishda xato:", err);
-    });
+bot.setWebHook(`${publicUrl}${webHookPath}`).catch(err => {
+    console.error("WebHook o'rnatishda xato:", err);
+});
 
 // 4. WebHook Endpoint (Telegramdan keladigan POST so'rovlarni qabul qilish)
-// Telegram yangi xabar kelganda aynan shu manzilga (url/token) POST yuboradi.
-app.post(`/${token}`, (req, res) => {
+app.post(webHookPath, (req, res) => {
     bot.processUpdate(req.body);
-    // Telegramga muvaffaqiyatli qabul qilinganini bildirish
     res.sendStatus(200); 
 });
 
-// 5. Asosiy Server Endpoints (Sayt integratsiyasi uchun tayyorgarlik)
-
-// Saytga integratsiya qilinadigan HTML faylni taqdim etish (hozircha oddiy tekst)
-app.get('/', (req, res) => {
-    // Keyingi qadamda biz bu yerga index.html faylini yuklaymiz.
-    res.send(`
-        <h1>Telegram Bot WebHook Server ishlamoqda!</h1>
-        <p>WebHook URL: ${webHookUrl}</p>
-        <p>Bot WebHook rejimida muvaffaqiyatli ishga tushirildi. Endi faqat sayt bilan integratsiya qilish kerak.</p>
-    `);
-});
-
-// 6. Serverni Tinglash
-app.listen(port, () => {
-    console.log(`Express server ${port} portida ishlamoqda`);
-});
-
-
-// 7. Bot Logikasi (Xabar kelganda nima qilish)
-bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    // --- Keyingi bosqich: Saytga xabar yuborish logikasi shu yerda bo'ladi ---
+// 5. Socket.io aloqasi (Front-end brauzerlar ulanganida)
+io.on('connection', (socket) => {
+    console.log('Yangi sayt mijoz ulandi (Socket.io)');
     
-    // Hozircha oddiy javob yuboramiz
-    bot.sendMessage(chatId, `Siz yubordingiz: "${text}". Men WebHook orqali ishlayapman.`);
+    // Test uchun ulanish so'ngida xabar yuborish
+    socket.emit('status', 'Bot serveriga ulanish o\'rnatildi.');
+
+    socket.on('disconnect', () => {
+        console.log('Sayt mijoz uzildi');
+    });
+});
+
+// 6. Bot Logikasi: Telegramdan kelgan xabarni Socket.io orqali saytga yuborish
+bot.on('message', (msg) => {
+    const text = msg.text;
+    const chatId = msg.chat.id;
+
+    // Saytga xabar yuborish (maxfiy xabarni tayyorlash)
+    const secretMessage = `Botdan kelgan maxfiy xabar: ${text.toUpperCase()}`;
+    
+    // Barcha ulangan brauzerlarga xabarni yuborish
+    io.emit('secret-message', secretMessage); 
+    
+    bot.sendMessage(chatId, `Xabar qabul qilindi va ${io.engine.clientsCount} ta sayt mijoziga yuborildi.`);
+});
+
+
+// 7. Serverni Tinglash
+server.listen(port, () => {
+    console.log(`Express server Socket.io bilan ${port} portida ishlamoqda`);
 });
