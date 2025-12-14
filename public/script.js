@@ -11,8 +11,9 @@ let lastReceivedMessage = "Botdan hali birorta xabar kelmadi.";
 // =========================================================
 // Socket.io Ulanishi
 // =========================================================
-// Render URL manzilingizga to'g'ridan-to'g'ri ulanish
-const socket = io('https://telegram-bot-k42a.onrender.com'); 
+// Agar bu fayl tashqi saytda ishlatilsa, URL aniq ko'rsatilishi kerak
+const BOT_SERVER_URL = 'https://telegram-bot-k42a.onrender.com';
+const socket = io(BOT_SERVER_URL); 
 
 // 1. Ulanish Muvaffaqiyatli Bo'lganda
 socket.on('connect', () => {
@@ -26,12 +27,10 @@ socket.on('disconnect', () => {
     statusMessage.style.color = 'red';
 });
 
-// 3. Botdan Kelgan Xabarni Qabul Qilish (server.js dan)
+// 3. Botdan Kelgan Xabarni Qabul Qilish 
 socket.on('secret-message', (message) => {
-    // Debugging uchun Console'ga yozish (Brauzerda F12 orqali ko'rish mumkin)
     console.log("Botdan yangi maxfiy xabar keldi:", message); 
     
-    // Kelgan yangi xabarni saqlaymiz
     lastReceivedMessage = message; 
     
     // Foydalanuvchiga yangi xabar kelganini bildiramiz
@@ -48,14 +47,12 @@ socket.on('secret-message', (message) => {
 // =========================================================
 document.body.addEventListener('click', () => {
     
-    // Har bir bosishni sanaymiz
     clickCounter++;
     clickCountElement.textContent = `Bosishlar soni: ${clickCounter}`;
 
     // Agar 3 marta bosilsa
     if (clickCounter === 3) {
         
-        // Hozirgi ko'rinish holatini tekshiramiz
         const isVisible = secretMessageBox.style.display === 'block';
 
         if (isVisible) {
@@ -65,11 +62,11 @@ document.body.addEventListener('click', () => {
             // Agar yashirin bo'lsa, ko'rsatamiz
             secretMessageBox.style.display = 'block';
             
-            // Va eng so'nggi kelgan xabarni joylashtiramiz
+            // Eng so'nggi kelgan xabarni joylashtiramiz
             messageContent.textContent = lastReceivedMessage; 
         }
         
-        // Bosish siklini yakunlab, hisoblagichni nolga qaytaramiz
+        // Hisoblagichni nolga qaytaramiz
         clickCounter = 0;
         clickCountElement.textContent = `Bosishlar soni: ${clickCounter}`;
     }

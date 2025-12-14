@@ -18,9 +18,10 @@ const webHookPath = `/${token}`;
 // =========================================================
 const app = express();
 const server = http.createServer(app); 
+// Socket.io ni CORS (Boshqa manbalardan kelgan ulanish)ga ruxsat berish bilan sozlash
 const io = socketIo(server, {
     cors: {
-        origin: "*", // Barcha tashqi domenlardan ulanishga ruxsat
+        origin: "*", // Barcha tashqi domenlardan ulanishga ruxsat berish
         methods: ["GET", "POST"]
     }
 }); 
@@ -48,7 +49,7 @@ app.post(webHookPath, (req, res) => {
 // =========================================================
 io.on('connection', (socket) => {
     console.log('Yangi sayt mijoz ulandi (Socket.io)');
-    // Bu qismda ulanishni tekshirish yoki kalitni so'rash mantiqi qo'shilishi mumkin
+    
     socket.on('disconnect', () => {
         console.log('Sayt mijoz uzildi');
     });
