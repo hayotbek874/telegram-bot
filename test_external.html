@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Tashqi Sayt Testi (Bot bilan)</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: white; }
+        #status-message { color: gray; margin-bottom: 20px; }
+        #secret-message-box { 
+            background-color: #ffe0b2; 
+            padding: 15px; 
+            border: 2px solid #ff9800; 
+            border-radius: 5px; 
+            margin-top: 30px; 
+            display: none; 
+            cursor: pointer;
+        }
+        #click-count { margin-top: 10px; color: #f44336; font-weight: bold; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tashqi Sayt Orqali Botga Ulanish Testi</h1>
+        <p class="info">Bu fayl boshqa domen yoki lokal kompyuterda ishlamoqda.</p>
+        <p id="status-message">Serverga ulanish holati...</p>
+        
+        <p>Sahifaga **uch marta bosing**, maxfiy bot xabari ko'rinadi.</p>
+
+        <div id="secret-message-box">
+            Maxfiy Xabar: <span id="message-content">Xabar hali kelmadi...</span>
+        </div>
+        
+        <p id="click-count">Bosishlar soni: 0</p>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    <script>
+        // Elementlar
+        const statusMessage = document.getElementById('status-message');
+        const secretMessageBox = document.getElementById('secret-message-box');
+        const messageContent = document.getElementById('message-content');
+        const clickCountElement = document.getElementById('click-count');
+
+        let clickCounter = 0;
+        let lastReceivedMessage = "Botdan hali birorta xabar kelmadi."; 
+
+        // Bot Serveringizning URL manziliga ulanish
+        const BOT_SERVER_URL = 'https://telegram-bot-k42a.onrender.com';
+        const socket = io(BOT_SERVER_URL); 
+        
+        // =============================================
+        // Socket.io Ulanish va Xabar Qabul Qilish
+        // =============================================
+        socket.on('connect', () => {
+            statusMessage.textContent = `✅ Serverga muvaffaqiyatli ulanildi: ${BOT_SERVER_URL}`;
+            statusMessage.style.color = 'green';
+        });
+
+        socket.on('disconnect', () => {
+            statusMessage.textContent = '❌ Server bilan aloqa uzildi.';
+            statusMessage.style.color = 'red';
+        });
+
+        socket.on('secret-message', (message) => {
+            console.log("Botdan yangi maxfiy xabar keldi:", message); 
+            lastReceivedMessage = message; 
+            messageContent.textContent = "Yangi maxfiy xabar keldi. 3 marta bosing!"; 
+            secretMessageBox.style.display = 'none';
+            clickCounter = 0;
+            clickCountElement.textContent = `Bosishlar soni: ${clickCounter}`;
+        });
+
+        // =============================================
+        // 3 marta Bosish Mantiqi
+        // =============================================
+        document.body.addEventListener('click', () => {
+            clickCounter++;
+            clickCountElement.textContent = `Bosishlar soni: ${clickCounter}`;
+
+            if (clickCounter === 3) {
+                const isVisible = secretMessageBox.style.display === 'block';
+                if (isVisible) {
+                    secretMessageBox.style.display = 'none';
+                } else {
+                    secretMessageBox.style.display = 'block';
+                    messageContent.textContent = lastReceivedMessage; 
+                }
+                clickCounter = 0;
+                clickCountElement.textContent = `Bosishlar soni: ${clickCounter}`;
+            }
+        });
+    </script>
+</body>
+</html>
