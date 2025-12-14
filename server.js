@@ -9,19 +9,24 @@ const path = require('path');
 // 1. O'zgarmas Ma'lumotlar
 // =========================================================
 const token = '8311436800:AAEjLwVJZjZ5_hpPr6CQHovx6abEOThRA-I'; 
-const publicUrl = 'https://telegram-bot-k42a.onrender.com'; // Sizning yangi Render URL manzilngiz
+const publicUrl = 'https://telegram-bot-k42a.onrender.com'; // Sizning Render URL manzilngiz
 const port = process.env.PORT || 3000;
 const webHookPath = `/${token}`;
 
 // =========================================================
-// 2. Server va Socket.io Sozlamalari
+// 2. Server va Socket.io Sozlamalari (CORS RUXSATI BERILGAN)
 // =========================================================
 const app = express();
 const server = http.createServer(app); 
-const io = socketIo(server); // Socket.io ni HTTP serverga ulash
+const io = socketIo(server, {
+    cors: {
+        origin: "*", // Barcha tashqi domenlardan ulanishga ruxsat
+        methods: ["GET", "POST"]
+    }
+}); 
 
 app.use(bodyParser.json()); 
-// public papkasi ichidagi index.html, script.js va boshqalarni taqdim etish
+// public papkasi ichidagi statik fayllarni taqdim etish
 app.use(express.static(path.join(__dirname, 'public'))); 
 
 // =========================================================
@@ -39,11 +44,11 @@ app.post(webHookPath, (req, res) => {
 });
 
 // =========================================================
-// 5. Socket.io aloqasi (Front-end brauzerlar ulanganida)
+// 5. Socket.io aloqasi
 // =========================================================
 io.on('connection', (socket) => {
     console.log('Yangi sayt mijoz ulandi (Socket.io)');
-
+    // Bu qismda ulanishni tekshirish yoki kalitni so'rash mantiqi qo'shilishi mumkin
     socket.on('disconnect', () => {
         console.log('Sayt mijoz uzildi');
     });
